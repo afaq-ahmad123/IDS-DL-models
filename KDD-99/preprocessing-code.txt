@@ -1,0 +1,22 @@
+# Importing the libraries
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Importing the dataset
+dataset = pd.read_csv('/content/kddcup.data_10_percent_corrected')
+X = dataset.iloc[:, :-1].values
+y = dataset.iloc[:, -1].values
+
+#conversion of categorical data to numerical form
+Z=np.copy(X[:,:])
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+labelencoder_x=LabelEncoder()
+Z[:, 1]=labelencoder_x.fit_transform(Z[:, 1])
+Z[:, 2]=labelencoder_x.fit_transform(Z[:, 2])
+Z[:, 3]=labelencoder_x.fit_transform(Z[:, 3])
+
+# Feature Scaling
+from sklearn.preprocessing import MinMaxScaler
+sc = MinMaxScaler(feature_range = (0, 1))
+M = sc.fit_transform(Z)
