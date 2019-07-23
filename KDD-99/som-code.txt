@@ -1,0 +1,61 @@
+# Importing the libraries
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Importing the dataset
+dataset = pd.read_csv('/content/kddcup.data_10_percent_corrected')
+X = dataset.iloc[:, :-1].values
+y = dataset.iloc[:, -1].values
+
+#conversion of categorical data to numerical form
+Z=np.copy(X[:,:])
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+labelencoder_x=LabelEncoder()
+Z[:, 1]=labelencoder_x.fit_transform(Z[:, 1])
+Z[:, 2]=labelencoder_x.fit_transform(Z[:, 2])
+Z[:, 3]=labelencoder_x.fit_transform(Z[:, 3])
+
+Y=np.copy(y)
+labelencoder_y=LabelEncoder()
+Y=labelencoder_y.fit_transform(Y)
+print(Y[1])
+
+from sklearn.preprocessing import OneHotEncoder
+onehotencoder= OneHotEncoder(categorical_features=[1,2,3])
+W=onehotencoder.fit_transform(Z).toarray()
+
+# Feature Scaling
+from sklearn.preprocessing import MinMaxScaler
+sc = MinMaxScaler(feature_range = (0, 1))
+M = sc.fit_transform(W)
+print(M[1])
+
+# Training the SOM
+from minisom import MiniSom
+som = MiniSom(x = 10, y = 10, input_len = 118, sigma = 1.0, learning_rate = 0.5)
+som.random_weights_init(M)
+som.train_random(data = M, num_iteration = 100)
+
+# Visualizing the results
+from pylab import bone, pcolor, colorbar, plot, show
+bone()
+pcolor(som.distance_map().T)
+colorbar()
+markers = ['o', '3','<','x','p','h','d','_','+','X','8']
+colors = ['r', 'g']
+for i, x in enumerate(M[:1000]):
+    w = som.winner(x)
+    plot(w[0] + 0.5,
+         w[1] + 0.5,
+         markers[int(Y[i]/2)-1],
+         markeredgecolor = colors[Y[i]%2],
+         markerfacecolor = 'None',
+         markersize = 4,
+         markeredgewidth = 2)
+show()
+# Finding the frauds
+mappings = som.win_map(M)
+#frauds = np.concatenate((mappings[(6,6)]), axis = 0)
+frauds = mappings[(6,6)]
+frauds = sc.inverse_transform(frauds)
