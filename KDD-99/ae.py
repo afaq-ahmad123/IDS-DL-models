@@ -12,9 +12,9 @@ import numpy as np
 
 
 # Importing the dataset
-training_set = pd.read_csv('/Users/m.salmanghazi/Downloads/kddcup.data.corrected.csv')
+training_set = pd.read_csv('/Downloads/kddcup.data.corrected.csv')
 
-test_set = pd.read_csv('/Users/m.salmanghazi/Downloads/kddcup.data_10_percent_corrected.csv')
+test_set = pd.read_csv('/Downloads/kddcup.data_10_percent_corrected.csv')
 training_set = training_set.iloc[:, :].values
 test_set = test_set.iloc[:, :].values
 
