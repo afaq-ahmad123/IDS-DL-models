@@ -10,11 +10,11 @@ from torch.autograd import Variable
 
 import numpy as np
 
-
+import pickle
 # Importing the dataset
-training_set = pd.read_csv('/Downloads/kddcup.data.corrected.csv')
+training_set = pd.read_csv('/Users/m.salmanghazi/Downloads/kddcup.data.corrected.csv')
 
-test_set = pd.read_csv('/Downloads/kddcup.data_10_percent_corrected.csv')
+test_set = pd.read_csv('/Users/m.salmanghazi/Downloads/kddcup.data_10_percent_corrected.csv')
 training_set = training_set.iloc[:, :].values
 test_set = test_set.iloc[:, :].values
 
@@ -26,7 +26,7 @@ training_set[:, 1]=labelencoder_x.fit_transform(training_set[:, 1])  # protocol 
 test_set[:, 1]=labelencoder_x.fit_transform(test_set[:, 1])
 training_set[:, 2]=labelencoder_x.fit_transform(training_set[:, 2])  # service
 test_set[:, 2]=labelencoder_x.fit_transform(test_set[:, 2])
-training_set[:, 3]=labelencoder_x.fit_transform(training_set[:, 3])  # service
+training_set[:, 3]=labelencoder_x.fit_transform(training_set[:, 3])  # Flags
 test_set[:, 3]=labelencoder_x.fit_transform(test_set[:, 3])
 training_set[:, -1]=labelencoder_x.fit_transform(training_set[:, -1])  # result
 test_set[:, -1]=labelencoder_x.fit_transform(test_set[:, -1])
@@ -81,27 +81,33 @@ sae = SAE()
 criterion = nn.MSELoss()
 optimizer = optim.RMSprop(sae.parameters(), lr=0.01, weight_decay=0.5)
 
-# TRAINING...
-nb_epoch = 200
-for epoch in range(1, nb_epoch + 1):
-    train_loss = 0
-    s = 0.
-    for i in range(protocole_type):
-        input = Variable(training_set).unsqueeze(0)
-        target = input.clone()
-        if torch.sum(target.data > 0) > 0:
-            output = sae(input)
-            target.require_grad = False
-            output[target == 0] = 0
-            # loss = CrossEntropyLoss()
-            # loss(Pip, Train["Label"])
-            loss = criterion(output, target)
-            mean_corrector = service/float(torch.sum(target.data > 0) + 1e-10)
-            loss.backward()
-            train_loss += np.sqrt(loss.item()*mean_corrector)
-            s += 1.
-            optimizer.step()
-    print("Epoch no. " + str(epoch) + " LOSS " + str(train_loss/s))
+
+#
+# # If you want to TRAIN  the Auto encoder, run the below code in comments...
+# nb_epoch = 200
+# for epoch in range(1, nb_epoch + 1):
+#     train_loss = 0
+#     s = 0.
+#     for i in range(protocole_type):
+#         input = Variable(training_set).unsqueeze(0)
+#         target = input.clone()
+#         if torch.sum(target.data > 0) > 0:
+#             output = sae(input)
+#             target.require_grad = False
+#             output[target == 0] = 0
+#             # loss = CrossEntropyLoss()
+#             # loss(Pip, Train["Label"])
+#             loss = criterion(output, target)
+#             mean_corrector = service/float(torch.sum(target.data > 0) + 1e-10)
+#             loss.backward()
+#             train_loss += np.sqrt(loss.item()*mean_corrector)
+#             s += 1.
+#             optimizer.step()
+#     print("Epoch no. " + str(epoch) + " LOSS " + str(train_loss/s))
+#
+
+with open('myModel','rb') as f:
+    sae = pickle.load(f)
 
 #TESTING
 test_loss = 0
@@ -113,8 +119,7 @@ for i in range(protocole_type):
         output = sae(input)
         target.require_grad = False
         output[target == 0] = 0
-        # loss = CrossEntropyLoss()
-        # loss(Pip, Train["Label"])
+
         loss = criterion(output, target)
         mean_corrector = service / float(torch.sum(target.data > 0) + 1e-10)
         test_loss += np.sqrt(loss.item() * mean_corrector)
@@ -122,4 +127,4 @@ for i in range(protocole_type):
         optimizer.step()
 print()
 print()
-print("TEST LOSS " + str(train_loss/s))
+print("TEST LOSS " + str(test_loss/s))
