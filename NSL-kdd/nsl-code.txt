@@ -1,0 +1,40 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+# Importing the dataset
+dataset = pd.read_csv('/content/drive/My Drive/Colab Notebooks/KDDTrain+.txt')
+dataset.drop_duplicates(keep='first')
+X = dataset.iloc[:, :-2].values
+y = dataset.iloc[:, -2].values
+
+for i in range(len(y)):
+  if y[i] in ["back", "land", "neptune", "pod", "smurf", "teardrop","apache2","processtable","worm","udpstorm"]:
+    y[i]="DoS"
+    #print(y[i])
+  elif y[i] in ["satan","ipsweep","nmap","portsweep","mscan","saint"]:
+    y[i]="prob"
+  elif y[i] in ["guess_passwd","guess_password","ftp_write","imap","phf","multihop","warezmaster","warezclient","spy","xlock","xsnoop","snmpguess","snmpgetattack","httptunnel","sendmail","named"]:
+    y[i]="r2l"
+  elif y[i] in ["buffer_overflow", "loadmodule", "rootkit", "perl","sqlattack", "xterm", "ps"]:
+    y[i]="u2r"
+Z=np.copy(X[:,:])
+from sklearn.preprocessing import LabelEncoder
+labelencoder_x=LabelEncoder()
+Z[:, 1]=labelencoder_x.fit_transform(Z[:, 1])
+Z[:, 2]=labelencoder_x.fit_transform(Z[:, 2])
+Z[:, 3]=labelencoder_x.fit_transform(Z[:, 3])
+from sklearn.preprocessing import LabelEncoder
+Y=np.copy(y)
+labelencoder_y=LabelEncoder()
+#final Y for splitting
+Y=labelencoder_y.fit_transform(Y)
+from sklearn.preprocessing import OneHotEncoder
+onehotencoder= OneHotEncoder(categorical_features=[1,2,3])
+W=onehotencoder.fit_transform(Z).toarray()
+# Feature Scaling
+from sklearn.preprocessing import MinMaxScaler
+sc = MinMaxScaler(feature_range = (0, 1))
+#final X for spliting
+M = sc.fit_transform(W)
